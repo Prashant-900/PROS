@@ -1,0 +1,15 @@
+{
+  "type": "module",
+  "name": "k8s-watcher",
+  "version": "1.0.0",
+  "description": "Kubernetes Pod Deletion Watcher to clean up services",
+  "main": "watcher.js",
+  "scripts": {
+    "start": "node watcher.js"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^1.3.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
