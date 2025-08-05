@@ -14,7 +14,7 @@ export async function addsession(userid, name) {
     const addedSession = user.session.create({ name }); // creates a Mongoose subdocument
     user.session.push(addedSession);
     await user.save();
-
+    
     return {
       message: "Session added successfully",
       session: addedSession, // includes _id and name

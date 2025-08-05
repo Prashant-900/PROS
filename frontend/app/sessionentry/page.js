@@ -101,12 +101,10 @@ const Page = () => {
       const data = await response.json();
       if (!response.ok) {
         alert(data.message || "Failed to create session");
-      } else if (data.continue) {
+      } else {
         router.push(
           `/session/${sessionid}?name=${encodeURIComponent(sessionname)}&userid=${userid}`
         );
-      } else {
-        alert("Session not properly created.");
       }
     } catch (err) {
       console.error("❌ Error in handleSession:", err);

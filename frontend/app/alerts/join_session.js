@@ -21,7 +21,7 @@ const JoinSession = ({ setjoinsession,userid }) => {
             headers: {
               "Content-Type": "application/json"
             },
-            body: JSON.stringify({ name:userid,sessionid })  // Add "name" if required
+            body: JSON.stringify({ userid,sessionid })  // Add "name" if required
           })
         const data=await response.json();
         if(!response.ok){
@@ -30,7 +30,7 @@ const JoinSession = ({ setjoinsession,userid }) => {
         }
         if(data.allowed) {
             router.push(`/session/${sessionid}?name=${encodeURIComponent(
-                        data.owner_userid)}`)
+                        data.owner_userid)}&userid=${userid}`);
             return;
         }
     } catch (error) {

@@ -41,7 +41,7 @@ spec:
       labels:
         app: backend
     spec:
-      serviceAccountName: backend-serviceaccount
+      serviceAccountName: backend-sa
       containers:
         - name: backend
           image: backend:v1
@@ -70,3 +70,33 @@ spec:
             limits:
               cpu: "1"
               memory: "1Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-manager-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-manager
+  template:
+    metadata:
+      labels:
+        app: pod-manager
+    spec:
+      serviceAccountName: pod-manager-sa
+      containers:
+        - name: pod-manager
+          image: pod-manager:v1
+          command: ["node", "server.js"]
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+

@@ -1,148 +1,193 @@
-import express from 'express';
-import {requestUser, checkAllowedUser, getAllowedUsers,getRequestUser,addToAllowedUsers,removeFromUserRequests } from '../controller/sessioncontrol.controller.js';
+import express from "express";
+import {
+  requestUser,
+  checkAllowedUser,
+  getAllowedUsers,
+  getRequestUser,
+  addToAllowedUsers,
+  removeFromUserRequests,
+  getRight,
+  removeFromAllowedUsers,
+} from "../controller/sessioncontrol.controller.js";
 
 const sessioncontrolroute = express.Router();
 
-sessioncontrolroute.post('/getrequest', async (req, res) => {
+sessioncontrolroute.post("/getrequest", async (req, res) => {
   try {
-    const { userid,sessionid } = req.body;  // now reading from JSON body (PUT usually sends JSON)
+    const { userid, sessionid } = req.body; // now reading from JSON body (PUT usually sends JSON)
 
     if (!userid) {
-      return res.status(400).send('userid is required in request body');
+      return res.status(400).send("userid is required in request body");
     }
 
     if (!sessionid) {
-      return res.status(400).send('sessionid is required in request body');
+      return res.status(400).send("sessionid is required in request body");
     }
 
-    const message = await getRequestUser(userid,sessionid);
+    const message = await getRequestUser(userid, sessionid);
     res.status(201).json({
       users_requests: message.users_requests || [],
     });
   } catch (error) {
-    console.error('Error getting session:', error);
+    console.error("Error getting session:", error);
     res.status(500).send("failed to get session");
   }
-})
+});
 
-sessioncontrolroute.post('/request', async (req, res) => {
+sessioncontrolroute.post("/request", async (req, res) => {
   try {
     const { userid, sessionid } = req.body;
 
     if (!userid || !sessionid) {
-      return res.status(400).send('userid and sessionid are required');
+      return res.status(400).send("userid and sessionid are required");
     }
 
     const message = await requestUser(userid, sessionid);
 
     if (!message) {
-      return res.status(404).send('Session not found');
+      return res.status(404).send("Session not found");
     }
 
     res.status(200).json({
-      message:"Request added successfully",
+      message: "Request added successfully",
     });
-
   } catch (error) {
-    console.error('Error getting request users:', error);
+    console.error("Error getting request users:", error);
     res.status(500).send("Failed to get request users");
   }
 });
 
-sessioncontrolroute.post('/allowed',async(req,res) => {
+sessioncontrolroute.post("/allowed", async (req, res) => {
   try {
-    const { userid, sessionid,name,right } = req.body;
+    const { userid, sessionid, name, right } = req.body;
 
     if (!userid || !sessionid) {
-      return res.status(400).send('userid and sessionid are required');
+      return res.status(400).send("userid and sessionid are required");
     }
 
-    const message = await addToAllowedUsers(userid, sessionid,name,right);
+    const message = await addToAllowedUsers(userid, sessionid, name, right);
 
     if (!message) {
-      return res.status(404).send('Session not found');
+      return res.status(404).send("Session not found");
     }
 
     res.status(200).json({
-      message:"User moved to allowed_users",
+      message: "User moved to allowed_users",
     });
-
   } catch (error) {
-    console.error('Error getting request users:', error);
+    console.error("Error getting request users:", error);
     res.status(500).send("Failed to get request users");
+  } finally {
+    res.on("finish", () => {
+      console.log("Request completed");
+    });
   }
-  finally{
-    res.on('finish', () => {
-      console.log('Request completed');
-    })
-    }
 });
 
-sessioncontrolroute.delete('/allowed', async (req, res) => {
+sessioncontrolroute.delete("/allowed", async (req, res) => {
   try {
-    const { userid,sessionid,name } = req.body;  // now reading from JSON body (PUT usually sends JSON)
+    const { userid, sessionid, name } = req.body; // now reading from JSON body (PUT usually sends JSON)
 
     if (!userid) {
-      return res.status(400).send('userid is required in request body');
+      return res.status(400).send("userid is required in request body");
     }
 
-    const user = await removeFromUserRequests(userid,sessionid,name);
+    const user = await removeFromUserRequests(userid, sessionid, name);
     res.status(201).json({
-      message: "User removed successfully"
+      message: "User removed successfully",
     });
   } catch (error) {
-    console.error('Error getting session:', error);
+    console.error("Error getting session:", error);
     res.status(500).send("failed to get session");
   }
-})
+});
 
-sessioncontrolroute.post('/checkallowed',async(req,res) => {
+sessioncontrolroute.delete("/removeallowed", async (req, res) => {
   try {
-    const {sessionid,name } = req.body;
+    const { userid, sessionid, name } = req.body; // now reading from JSON body (PUT usually sends JSON)
 
-    if (!name || !sessionid) {
-      return res.status(400).send('name and sessionid are required');
+    if (!userid) {
+      return res.status(400).send("userid is required in request body");
     }
 
-    const message = await checkAllowedUser(sessionid,name);
+    const user = await removeFromAllowedUsers(userid, sessionid, name);
+    res.status(201).json({
+      message: user.message,
+    });
+  } catch (error) {
+    console.error("Error getting session:", error);
+    res.status(500).send("failed to get session");
+  }
+});
+
+sessioncontrolroute.post("/checkallowed", async (req, res) => {
+  try {
+    const { sessionid, userid } = req.body;
+
+    if (!userid || !sessionid) {
+      return res.status(400).send("name and sessionid are required");
+    }
+
+    const message = await checkAllowedUser(sessionid, userid);
 
     if (!message) {
-      return res.status(404).send('Session not found');
+      return res.status(404).send("Session not found");
     }
 
     res.status(200).json({
       allowed: message.allowed,
-      owner_userid: message.owner_userid
+      owner_userid: message.owner_userid,
     });
-
   } catch (error) {
-    console.error('Error getting request users:', error);
+    console.error("Error getting request users:", error);
     res.status(500).send("Failed to get request users");
   }
-})
+});
 
-sessioncontrolroute.post('/getallowed',async(req,res) => {
+sessioncontrolroute.post("/getallowed", async (req, res) => {
   try {
     const { userid, sessionid } = req.body;
 
     if (!userid || !sessionid) {
-      return res.status(400).send('userid and sessionid are required');
+      return res.status(400).send("userid and sessionid are required");
     }
 
     const message = await getAllowedUsers(userid, sessionid);
 
     if (!message) {
-      return res.status(404).send('Session not found');
+      return res.status(404).send("Session not found");
     }
 
     res.status(200).json({
       allowed_users: message.allowed_users,
     });
-
   } catch (error) {
-    console.error('Error getting request users:', error);
+    console.error("Error getting request users:", error);
     res.status(500).send("Failed to get request users");
   }
-})
+});
 
-export default sessioncontrolroute
+sessioncontrolroute.post("/right", async (req, res) => {
+  try {
+    const { userid, sessionid } = req.body;
+
+    if (!userid || !sessionid) {
+      return res.status(400).send("userid and sessionid are required");
+    }
+
+    const message = await getRight(userid, sessionid);
+
+    if (!message) {
+      return res.status(404).send("Session not found");
+    }
+
+    res.status(200).json({
+      right: message.right,
+    });
+  } catch (error) {
+    console.error("Error getting request users:", error);
+    res.status(500).send("Failed to get request users");
+  }
+});
+
+export default sessioncontrolroute;

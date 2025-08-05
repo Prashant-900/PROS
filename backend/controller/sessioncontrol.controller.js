@@ -163,3 +163,55 @@ export async function removeFromUserRequests(userid, sessionid, name) {
     throw error;
   }
 }
+
+export async function removeFromAllowedUsers(userid, sessionid, name) {
+  try {
+    await connectDB();
+
+    const user = await User.findOne({ userid });
+    if (!user) throw new Error("User not found");
+
+    const session = user.session.id(sessionid);
+    if (!session) throw new Error("Session not found");
+
+    session.allowed_users = session.allowed_users.filter(u => u.name !== name);
+    await user.save();
+
+    return { message: "User removed from allowed_users"};
+  } catch (error) {
+    console.error("Failed to remove from allowed_users:", error.message);
+    throw error;
+  }
+}
+
+
+export async function getRight(userid, sessionid) {
+  try {
+    if (!userid || !sessionid) {
+      return { right: "notallowed" };
+    }
+
+    await connectDB();
+
+    const user = await User.findOne({ "session._id": sessionid });
+    if (!user) {
+      return { right: "notallowed" };
+    }
+    if(user.userid === userid){
+      return { right: "write" };
+    }
+    const session = user.session.id(sessionid);
+    if (!session) {
+      return { right: "notallowed" };
+    }
+
+    const allowedUser = session.allowed_users.find(
+      (u) => typeof u === "string" ? u === userid : u.name === userid
+    );
+
+    return { right: allowedUser?.right || "notallowed" };
+  } catch (error) {
+    console.error("Failed to get right:", error.message);
+    return { right: "notallowed" };
+  }
+}

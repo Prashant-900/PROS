@@ -51,7 +51,7 @@ export const SessionsUI = ({
 
       {/* Top bar - fixed height */}
       <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-700">
-        <Button onClick={() => router.back()}>
+        <Button onClick={() => router.push('/')}>
           <ArrowLeftIcon className="w-5 h-5" />
         </Button>
 

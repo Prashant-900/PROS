@@ -1,6 +1,5 @@
 import express from 'express';
 import { addsession,getsession,deletesession } from '../controller/session.controller.js';
-import { createFolder, deleteFolder, saveFile } from '../controller/database.controller.js';
 
 const sessionroute = express.Router();
 
@@ -14,7 +13,6 @@ sessionroute.post('/add', async (req, res) => {
     }
 
     const user = await addsession(userid,name);
-    const folder=await createFolder(userid,user.session._id);
     res.status(201).json({
       user
     });
@@ -33,7 +31,6 @@ sessionroute.delete('/delete', async (req, res) => {
     }
 
     const user = await deletesession(sessionid);
-    const folder=await deleteFolder(userid,sessionid);
     res.status(201).json({
       user,
     });
@@ -71,7 +68,13 @@ sessionroute.post('/save', async (req, res) => {
     if (!sessionid) {
       return res.status(400).send('sessionid is required in request body');
     }
-    const user = await saveFile(userid,sessionid);
+    const user = await fetch("http://databse-manager-service:8080/save", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userid,sessionid }),
+    });
     res.status(201).json({
       user
     });

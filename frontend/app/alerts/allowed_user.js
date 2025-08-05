@@ -51,24 +51,38 @@ const AllowedUser = ({ onBack, heading, userid, sessionid }) => {
   };
 
   const handleRemove = async (name) => {
-    const response=await fetch(`${backurl}/sessioncontrol/allowed`, {
-      method: "DELETE",
-      body: JSON.stringify({ userid, sessionid, name }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-    const data=await response.json();
-    if(response.ok){
-      alert(data.message);
-    }
+    try {
+      const endpoint = heading === "Allowed Users" 
+        ? "removeallowed" 
+        : "allowed";
+      
+      const method = heading === "Allowed Users" 
+        ? "DELETE" 
+        : "DELETE";
 
-    setUsers((prevUsers) =>
-      prevUsers.filter((user) =>
-        typeof user === "string" ? user !== name : user.name !== name
-      )
-    );
-    // Optionally: call API to remove user request
+      const response = await fetch(`${backurl}/sessioncontrol/${endpoint}`, {
+        method,
+        body: JSON.stringify({ userid, sessionid, name }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      const data = await response.json();
+      if(response.ok) {
+        alert(data.message);
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) =>
+            typeof user === "string" ? user !== name : user.name !== name
+          )
+        );
+      } else {
+        alert(data.message || "Failed to remove user");
+      }
+    } catch (err) {
+      console.error("Error removing user:", err);
+      alert("An error occurred while removing user");
+    }
   };
 
   const handleSave = async (name, right) => {
@@ -124,8 +138,8 @@ const AllowedUser = ({ onBack, heading, userid, sessionid }) => {
                 )}
               </div>
 
-              {heading !== "Allowed Users" && (
-                <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center">
+                {heading === "Allowed Users" ? (
                   <button
                     onClick={() =>
                       handleRemove(typeof user === "string" ? user : user.name)
@@ -134,32 +148,43 @@ const AllowedUser = ({ onBack, heading, userid, sessionid }) => {
                   >
                     <XIcon className="w-4 h-4" />
                   </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() =>
+                        handleRemove(typeof user === "string" ? user : user.name)
+                      }
+                      className="text-red-400 hover:text-red-600"
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    onClick={() =>
-                      handleSave(
-                        typeof user === "string" ? user : user.name,
-                        "read"
-                      )
-                    }
-                    className="text-blue-400 hover:text-blue-600 text-sm"
-                  >
-                    Read
-                  </button>
+                    <button
+                      onClick={() =>
+                        handleSave(
+                          typeof user === "string" ? user : user.name,
+                          "read"
+                        )
+                      }
+                      className="text-blue-400 hover:text-blue-600 text-sm"
+                    >
+                      Read
+                    </button>
 
-                  <button
-                    onClick={() =>
-                      handleSave(
-                        typeof user === "string" ? user : user.name,
-                        "write"
-                      )
-                    }
-                    className="text-green-400 hover:text-green-600 text-sm"
-                  >
-                    Write
-                  </button>
-                </div>
-              )}
+                    <button
+                      onClick={() =>
+                        handleSave(
+                          typeof user === "string" ? user : user.name,
+                          "write"
+                        )
+                      }
+                      className="text-green-400 hover:text-green-600 text-sm"
+                    >
+                      Write
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))
         )}

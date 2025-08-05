@@ -1,0 +1,12 @@
+FROM node:18
+
+RUN apt-get update && \
+    apt-get install -y wget unzip tree && \
+    wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.zip && \
+    unzip ngrok-v3-stable-linux-amd64.zip && \
+    mv ngrok /usr/local/bin/ && \
+    chmod +x /usr/local/bin/ngrok && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* ngrok-v3-stable-linux-amd64.zip
+
+CMD ["sleep", "infinity"]

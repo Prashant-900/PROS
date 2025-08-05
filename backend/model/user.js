@@ -7,7 +7,6 @@ const sessionSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-      status: { type: String, default: "idle" },
   userid: { type: String, required: true, unique: true },
   session: { type: [sessionSchema], default: [] }, // array of session objects
 });

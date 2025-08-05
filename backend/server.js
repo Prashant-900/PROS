@@ -5,6 +5,8 @@ import userroute from './routes/user.js';
 import containerroute from './routes/container.js';
 import sessionroute from './routes/session.js';
 import sessioncontrolroute from './routes/sessioncontrol.js';
+import priviewroute from './routes/priview.js';
+import filesroute from './routes/files.js';
 import cors from 'cors';
 
 const app = express();
@@ -18,6 +20,8 @@ app.use('/user', userroute);
 app.use('/session', sessionroute);
 app.use('/sessioncontrol', sessioncontrolroute);
 app.use('/container', containerroute);
+app.use('/priview', priviewroute);
+app.use('/files', filesroute);
 
 const server=http.createServer(app)
 setupWebSocket(server);

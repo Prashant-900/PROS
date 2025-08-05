@@ -17,7 +17,6 @@ const CreateSession = ({userid, setcreatesession,setsessiondata }) => {
           },
           body: JSON.stringify({ name: value,userid:userid }),
         });
-
         if (!res.ok) {
           alert("Failed to create session");
         }

@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import AppUI from "./ui.js";
 
-
 export default function App() {
   const params = useParams();
   const searchparam = useSearchParams();
@@ -19,7 +18,44 @@ export default function App() {
   const [code, setCode] = useState("");
   const [currentfile, setcurrentfile] = useState("");
   const [isClient, setIsClient] = useState(false);
+  const [right, setright] = useState("");
+  const [priview, setpriview] = useState({success:false,data:""});
+  const [port, setport] = useState(8080);
 
+  useEffect(() => {
+    async function fetchCode() {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/sessioncontrol/right`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sessionid, userid }),
+          }
+        );
+
+        const data = await response.json();
+        if (!response.ok || !data.right) {
+          throw new Error(
+            data.message || "Unauthorized or failed to fetch rights"
+          );
+        }
+        if(data.right==="notallowed") {
+          router.back();
+        }else {
+          setright(data.right);
+        }
+      } catch (err) {
+        console.error("Failed to fetch right:", err);
+        alert("Access denied or session invalid. Redirecting...");
+        router.back(); // Route back if rights not properly fetched
+      }
+    }
+
+    fetchCode();
+  }, [sessionid, userid]);
 
   // Refs for drag operations
   const isDraggingLeft = useRef(false);
@@ -56,7 +92,8 @@ export default function App() {
         if (rightSection) {
           const rightSectionRect = rightSection.getBoundingClientRect();
           const newHeight =
-            ((e.clientY - rightSectionRect.top) / rightSectionRect.height) * 100;
+            ((e.clientY - rightSectionRect.top) / rightSectionRect.height) *
+            100;
           setUpperRightHeight(Math.min(Math.max(30, newHeight), 85));
         }
       }
@@ -92,13 +129,16 @@ export default function App() {
   };
 
   const handleSave = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/session/save`, {
-      method: "POST",
-      body: JSON.stringify({ sessionid, userid }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/session/save`,
+      {
+        method: "POST",
+        body: JSON.stringify({ sessionid, userid }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     const data = await response.json();
     if (!response.ok) {
       alert("Failed to save session");
@@ -107,19 +147,43 @@ export default function App() {
     }
   };
 
+  const handleConnect = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/priview/getpriview`,
+      {
+        method: "POST",
+        body: JSON.stringify({ sessionid, port }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      alert("Failed to connect");
+    } else {
+      console.log(data);
+      setpriview(data);
+    }
+  };
+
   return (
     <AppUI
       // Data props
+      right={right}
       userid={userid}
       name={name}
       sessionid={sessionid}
       leftPanelWidth={leftPanelWidth}
       upperRightHeight={upperRightHeight}
+      setUpperRightHeight={setUpperRightHeight}
       editorTheme={editorTheme}
       code={code}
       currentfile={currentfile}
       isClient={isClient}
-      
+      priview={priview}
+      setport={setport}
+      port={port}
       // Event handlers
       handleLeftDividerMouseDown={handleLeftDividerMouseDown}
       handleHorizontalDividerMouseDown={handleHorizontalDividerMouseDown}
@@ -128,6 +192,7 @@ export default function App() {
       setEditorTheme={setEditorTheme}
       setCode={setCode}
       setcurrentfile={setcurrentfile}
+      handleConnect={handleConnect}
     />
   );
 }
